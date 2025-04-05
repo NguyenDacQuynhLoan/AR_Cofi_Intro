@@ -44,8 +44,10 @@
 
           // model.position.set(0, 0, 0);
           // model.rotation.set(-0.2, -0.5, 0);
-          // vuông góc với image 
-          model.rotation.set(Math.PI / 2, 0, 0); 
+          
+          // model.rotation.set(Math.PI / 2, 0, 0);  => vuông góc
+          model.rotation.set(75 * (Math.PI / 180), 0, 0); 
+          
           model.rotation.y += Math.PI / 45; // lệch sang phải 45 độ
           model.position.set(0, 0, 0); 
 
