@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+          "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from 'three';
+      import { MindARThree } from 'mindar-image-three';
+      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+      const mindarThree = new MindARThree({
+        container: document.querySelector("#container"),
+        imageTargetSrc: "./assets/file_tracking/gundam.mind"
+      });
+
+      const { renderer, scene, camera } = mindarThree;
+      const anchor = mindarThree.addAnchor(0);
+      const modelGroup = new THREE.Group();
+      anchor.group.add(modelGroup);
+
+      const gltfLoader = new GLTFLoader();
+      const clock = new THREE.Clock();
+
+      let mixer = null;
+      // scene light
+      const ambientLight = new THREE.AmbientLight(0x404040, 2); // Tăng cường độ ánh sáng môi trường
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Tăng cường độ ánh sáng hướng
+      directionalLight.position.set(1, 1, 1).normalize();
+      scene.add(directionalLight);
+
+      gltfLoader.load('./assets/models/extreme-application_onextreme_gundam/scene.gltf',
+        (gltf) => {
+          const model = gltf.scene;
+          model.scale.set(0.4, 0.4, 0.4);
+
+          // model.position.set(0, 0, 0);
+          // model.rotation.set(-0.2, -0.5, 0);
+          // vuông góc với image 
+          model.rotation.set(Math.PI / 2, 0, 0); 
+          model.rotation.y += Math.PI / 45; // lệch sang phải 45 độ
+          model.position.set(0, 0, 0); 
+
+          modelGroup.add(model);
+
+          mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach((clip) => {
+            mixer.clipAction(clip).play();
+          });
+        },
+        undefined,
+        (error) => {
+          console.error('Lỗi load model:', error);
+        }
+      );
+
+      const start = async () => {
+        await mindarThree.start();
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.setAnimationLoop(() => {
+          const delta = clock.getDelta();
+          if (mixer) mixer.update(delta);
+          renderer.render(scene, camera);
+        });
+      };
+
+      start();
+    </script>
+    <style>
+      body {
+        margin: 0;
+      }
+      #container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+  </body>
+</html>
